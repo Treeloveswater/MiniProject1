@@ -13,20 +13,20 @@ public class PlayerControler : MonoBehaviour
     //public float gravity = 1;
     //public float fallMultiplier = 5f;
 
-    Camera https://www.youtube.com/watch?v=USLp-4iwNnQ;
 
     public LayerMask groundLayer;
     public GameObject groundpos;
     private Rigidbody2D _rigidbody2D = null;
     private float facedirection;
     private Vector2 inputmove = Vector2.zero;
+    private Animator animator;
 
     private bool dojump;
 
     void Start()
     {
-
         _rigidbody2D = this.GetComponent<Rigidbody2D>();
+        animator = role.GetComponent<Animator>();
     }
 
     public bool OnGround = false;
@@ -35,16 +35,21 @@ public class PlayerControler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        OnGround = Physics2D.Raycast(groundpos.transform.position, Vector2.down, groundLength, groundLayer);
+       
 
         inputmove = new Vector2(Input.GetAxis("Horizontal"), 0f);
-        float facedirection = Input.GetAxisRaw("Horizontal");
+        facedirection = Input.GetAxisRaw("Horizontal");
         inputmove.Normalize();
         if(Input.GetButtonDown("Jump") && OnGround)
         {
+            //Jump();
             dojump = true;
         }
-
+        if(Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            print("attack");
+            animator.Play("°¢Ã×æ«-attack");
+        }
         if(inputmove == Vector2.zero || _rigidbody2D == null) return;
 
 
@@ -52,6 +57,7 @@ public class PlayerControler : MonoBehaviour
     }
     void Jump()
     {
+        animator.Play("°¢Ã×æ«-jump");
         _rigidbody2D.velocity = new Vector2(_rigidbody2D.velocity.x, 0);
         _rigidbody2D.AddForce(Vector2.up * jumpspeed, ForceMode2D.Impulse);
 
@@ -60,17 +66,24 @@ public class PlayerControler : MonoBehaviour
     private void FixedUpdate()
     {
         if (inputmove == Vector2.zero || _rigidbody2D == null) return;
+        OnGround = Physics2D.Raycast(groundpos.transform.position, Vector2.down, groundLength, groundLayer);
         //_rigidbody2D.velocity = inputmove * speed;
         _rigidbody2D.position = _rigidbody2D.position + speed * inputmove * Time.deltaTime;
+        
+        //print(OnGround);
         if (facedirection != 0)
         {
-            _rigidbody2D.transform.localScale = new Vector3(facedirection, 1, 1);
+            transform.localRotation = (facedirection > 0) ? Quaternion.Euler(0, 0, 0) : Quaternion.Euler(0, 180, 0);
         }
+
         if (dojump)
         {
             dojump = false;
             Jump();
+            OnGround = false;
         }
+        animator.SetFloat("speed", inputmove.magnitude);
+        animator.SetBool("OnGround", OnGround);
     }
 
     private void OnDrawGizmos()
